@@ -1,78 +1,33 @@
 <?php
 
-$model = new FoglalasokStatWithGraphSearch('search');
-$model->unsetAttributes();  // clear any default values
-if ( isset($_GET['FoglalasokStatWithGraphSearch']) ) {
-  $model->attributes = $_GET['FoglalasokStatWithGraphSearch'];
-}
-
-if ( $model->fromDate == null ) {
+if ( !isset($_GET['fromDate']) ) {
   $fromDateTime = new DateTime();
   $fromDateTime->sub(new DateInterval('P30D'));
-  $model->fromDate = $fromDateTime->format('Y-m-d');
+  $_GET['fromDate'] = $fromDateTime->format('Y-m-d');
 }
 
-if ( $model->toDate == null ) {
+if ( !isset($_GET['toDate']) ) {
   $toDateTime = new DateTime();
-  $model->toDate = $toDateTime->format('Y-m-d');
+  $_GET['toDate'] = $toDateTime->format('Y-m-d');
 }
 
-$dataProvider = $model->search();
+$dataProvider = isset($_GET['foglalas']) ? $_GET['foglalas'] : [];
 $foglalasokHUF = array();
 
-foreach ( $dataProvider->getData() as $foglalas ) {
-  $foglalasokHUF[$foglalas->jelDateClean] = $foglalas;
+foreach ( $dataProvider as $foglalas ) {
+  $foglalasokHUF[$foglalas['jelDateClean']] = $foglalas;
 }
 
-$sumDataProvider = $model->getSumBySearch();
-
-$monthlyDataProvider = $model->monthlySearch();
+$monthlyDataProvider = isset($_GET['monthly_foglalas']) ? $_GET['monthly_foglalas'] : [];
 $monthlyFoglalasokHUF = array();
 
-foreach ( $monthlyDataProvider->getData() as $foglalas ) {
-  $monthlyFoglalasokHUF[substr($foglalas->jelDateClean, 0, 7)] = $foglalas;
+foreach ( $monthlyDataProvider as $foglalas ) {
+  $monthlyFoglalasokHUF[substr($foglalas['jelDateClean'], 0, 7)] = $foglalas;
 }
 
-$sumFunction = function (DateTime $date, array $foglalasok) {
-
-  if ( isset($foglalasok[$date->format('Y-m-d')]) ) {
-    return (int)$foglalasok[$date->format('Y-m-d')]->sumFizetendo;
-  }
-
-  return 0;
-};
-
-$countFunction = function (DateTime $date, array $foglalasok) {
-
-  if ( isset($foglalasok[$date->format('Y-m-d')]) ) {
-    return (int)$foglalasok[$date->format('Y-m-d')]->countOf;
-  }
-
-  return 0;
-};
-
-$monthlySumFunction = function (DateTime $date, array $foglalasok) {
-
-  if ( isset($foglalasok[$date->format('Y-m')]) ) {
-    return (int)$foglalasok[$date->format('Y-m')]->sumFizetendo;
-  }
-
-  return 0;
-};
-
-$monthlyCountFunction = function (DateTime $date, array $foglalasok) {
-
-  if ( isset($foglalasok[$date->format('Y-m')]) ) {
-    return (int)$foglalasok[$date->format('Y-m')]->countOf;
-  }
-
-  return 0;
-};
-
-
 $periodInterval = new DateInterval('P1D');
-$startDate = DateTime::createFromFormat('Y-m-d', $model->fromDate);
-$endDate = DateTime::createFromFormat('Y-m-d', $model->toDate);
+$startDate = DateTime::createFromFormat('Y-m-d', $_GET['fromDate']);
+$endDate = DateTime::createFromFormat('Y-m-d', $_GET['toDate']);
 $endDate->add($periodInterval);
 
 $period = new DatePeriod($startDate, $periodInterval, $endDate);
@@ -90,14 +45,21 @@ foreach ( $period as $date ) {
 
   $normal = array();
   $normal[0] = $key;
-  $normal[1] = $sumFunction($date, $foglalasokHUF);
+  $normal[1] = function ($date, array $foglalasokHUF) {
+
+    if ( isset($foglalasokHUF[$date->format('Y-m-d')]) ) {
+      return (int)$foglalasokHUF[$date->format('Y-m-d')]->sumFizetendo;
+    }
+  
+    return 0;
+  };
   $chart['normal'][] = $normal;
 }
 $chartHUFData = $chart;
 
 $periodInterval = new DateInterval('P1M');
-$startDate = DateTime::createFromFormat('Y-m-d', $model->fromDate);
-$endDate = DateTime::createFromFormat('Y-m-d', $model->toDate);
+$startDate = DateTime::createFromFormat('Y-m-d', $_GET['fromDate']);
+$endDate = DateTime::createFromFormat('Y-m-d', $_GET['toDate']);
 $endDate->add($periodInterval);
 
 $period = new DatePeriod($startDate, $periodInterval, $endDate);
@@ -115,7 +77,14 @@ foreach ( $period as $date ) {
 
   $normal = array();
   $normal[0] = $key;
-  $normal[1] = $monthlySumFunction($date, $monthlyFoglalasokHUF);
+  $normal[1] = function ($date, $monthlyFoglalasokHUF) {
+
+    if ( isset($monthlyFoglalasokHUF[$date->format('Y-m')]) ) {
+      return (int)$monthlyFoglalasokHUF[$date->format('Y-m')]->sumFizetendo;
+    }
+  
+    return 0;
+  };
   $chart['normal'][] = $normal;
 }
 $monthlyChartHufData = $chart;
@@ -231,6 +200,4 @@ $monthlyChartHuf = $chart;
 $this->getController()->render('foglalasokStatWithGraph', array(
   'chartHUF' => $chartHUF,
   'monthlyChartHuf' => $monthlyChartHuf,
-  'model' => $model,
-  'sumDataProvider' => $sumDataProvider,
 ));
