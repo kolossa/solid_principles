@@ -2,9 +2,9 @@
 
 class ChartDataConverter
 {
-	private DefaultPeriodGenerator $defaultGenerator;
+	private HighchartDefaultPeriodGenerator $defaultGenerator;
 	
-	public function __construct(DefaultPeriodGenerator $defaultGenerator)
+	public function __construct(HighchartDefaultPeriodGenerator $defaultGenerator)
 	{
 		$this->defaultGenerator = $defaultGenerator;
 	}
