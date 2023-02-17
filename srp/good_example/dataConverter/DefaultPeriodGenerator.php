@@ -19,6 +19,7 @@ class DefaultPeriodGenerator
 
 			$normal = array();
 			$normal[0] = $key;
+			$normal[1] = $date;
 			$chart['normal'][] = $normal;
 		}
 
