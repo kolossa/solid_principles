@@ -1,6 +1,6 @@
 <?php 
 
-class DefaultPeriodGenerator
+class HighchartDefaultPeriodGenerator
 {
 	private \DateTime $startDate;
 	private \DateTime $endDate;
