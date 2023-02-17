@@ -2,7 +2,7 @@
 
 class DefaultPeriodGenerator
 {
-	public function generate(array $foglalasok, \DateTime $startDate, \DateTime $endDate, \DateInterval $periodInterval):array
+	public function generate(\DateTime $startDate, \DateTime $endDate, \DateInterval $periodInterval):array
 	{
 		$period = new DatePeriod($startDate, $periodInterval, $endDate);
 
