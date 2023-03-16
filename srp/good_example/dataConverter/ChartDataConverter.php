@@ -11,6 +11,7 @@ class ChartDataConverter
 	
 	public function convert(array $foglalasok, Closure $closure):array
 	{
+		//todo itt ne a default generátor-t használja, csak kapja meg a defaultData-t
 		$defaultData = $this->defaultGenerator->generate();
 		
 		foreach($defaultData['normal'] as $key=>$data){
